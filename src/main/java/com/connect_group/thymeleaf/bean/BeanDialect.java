@@ -28,6 +28,10 @@ import org.thymeleaf.processor.IProcessor;
 
 public class BeanDialect extends AbstractDialect {
 
+	public BeanDialect() {
+		super();
+	}
+	
 	public String getPrefix() {
 		return "th";
 	}

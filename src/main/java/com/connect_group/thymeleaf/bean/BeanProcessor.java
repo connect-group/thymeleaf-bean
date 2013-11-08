@@ -6,7 +6,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +20,6 @@ import org.thymeleaf.standard.expression.StandardExpressions;
 import org.thymeleaf.util.StringUtils;
 
 // TODO: support for text and utext.
-// TODO: support for Map<String,Object>
 // TODO: support for data- attributes e.g. Map getData(); getDataMobile() --> data-mobile
 
 /**
@@ -62,7 +60,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 	
 	@Override
 	protected Map<String, String> getModifiedAttributeValues(
-			Arguments arguments, Element element, String attributeName) {
+			final Arguments arguments, final Element element, final String attributeName) {
 
 		String expression = element.getAttributeValue(attributeName);
 		Object object = parseExpression(arguments, expression);
@@ -71,20 +69,20 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 	}
 
 	@Override
-	protected ModificationType getModificationType(Arguments arguments,
-			Element element, String attributeName, String newAttributeName) {
+	protected ModificationType getModificationType(final Arguments arguments,
+			final Element element, final String attributeName, final String newAttributeName) {
 		return ModificationType.SUBSTITUTION;
 	}
 
 	@Override
-	protected boolean removeAttributeIfEmpty(Arguments arguments,
-			Element element, String attributeName, String newAttributeName) {
+	protected boolean removeAttributeIfEmpty(final Arguments arguments,
+			final Element element, final String attributeName, final String newAttributeName) {
 		return true;
 	}
 
 	@Override
-	protected boolean recomputeProcessorsAfterExecution(Arguments arguments,
-			Element element, String attributeName) {
+	protected boolean recomputeProcessorsAfterExecution(final Arguments arguments,
+			final Element element, final String attributeName) {
 		return false;
 	}
 
@@ -93,7 +91,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return 1500;
 	}
 	
-	private Object parseExpression(Arguments arguments, String expressionString) {
+	private Object parseExpression(final Arguments arguments, final String expressionString) {
         final IStandardExpressionParser expressionParser = StandardExpressions.getExpressionParser(arguments.getConfiguration());
         final IStandardExpression expression = expressionParser.parseExpression(arguments.getConfiguration(), arguments, expressionString);
         final Object value = expression.execute(arguments.getConfiguration(), arguments);
@@ -101,7 +99,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
         return value;
 	}
 	
-	protected Map<String,String> getProperties(Object obj) {
+	protected Map<String,String> getProperties(final Object obj) {
 		HashMap<String,String> map = new HashMap<String,String>();
 		
 		map.putAll(getMapProperties(obj));
@@ -139,14 +137,14 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return map;
 	}
 	
-	private Map<String,String> getMapProperties(Object obj) {
+	private Map<String,String> getMapProperties(final Object obj) {
 		if(obj instanceof Map<?,?>) {
 			return getMapProperties((Map<?,?>)obj);
 		}
 		return Collections.emptyMap();
 	}
 	
-	private Map<String,String> getMapProperties(Map<?,?> map) {
+	private Map<String,String> getMapProperties(final Map<?,?> map) {
 		HashMap<String,String> result = new HashMap<String,String>();
 		
 		for(Entry<?,?> entry : map.entrySet()) {
@@ -163,7 +161,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return result;
 	}
 
-	private String getResult(PropertyDescriptor pd, Object obj) {
+	private String getResult(final PropertyDescriptor pd, final Object obj) {
 		String name = pd.getName();
 		Method method = pd.getReadMethod();
 		if(method!=null) {
@@ -174,7 +172,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return null;
 	}
 
-	private String asString(Object obj, String booleanTrueResult, String booleanFalseResult) {
+	private String asString(final Object obj, final String booleanTrueResult, final String booleanFalseResult) {
 		if(obj==null) {
 			return null;
 		}
@@ -216,7 +214,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return obj.toString();
 	}
 	
-	private String asString(Iterable<?> it) {
+	private String asString(final Iterable<?> it) {
 		StringBuilder str = new StringBuilder();
 		
 		for(Object o : it) {
@@ -225,7 +223,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return str.toString();
 	}
 
-	private String asString(Object[] arr) {
+	private String asString(final Object[] arr) {
 		StringBuilder str = new StringBuilder();
 		for(Object o : arr) {
 			append(str, asString(o, "true", "false"));
@@ -233,7 +231,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return str.toString();
 	}
 	
-	private String asString(byte[] arr) {
+	private String asString(final byte[] arr) {
 		StringBuilder str = new StringBuilder();
 		for(byte b : arr) {
 			append(str,b);
@@ -241,7 +239,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return str.toString();		
 	}
 
-	private String asString(short[] arr) {
+	private String asString(final short[] arr) {
 		StringBuilder str = new StringBuilder();
 		for(short s : arr) {
 			append(str,s);
@@ -249,7 +247,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return str.toString();		
 	}
 	
-	private String asString(int[] arr) {
+	private String asString(final int[] arr) {
 		StringBuilder str = new StringBuilder();
 		for(int i : arr) {
 			append(str, i);
@@ -257,7 +255,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return str.toString();		
 	}
 
-	private String asString(long[] arr) {
+	private String asString(final long[] arr) {
 		StringBuilder str = new StringBuilder();
 		for(long l : arr) {
 			append(str,l);
@@ -265,7 +263,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return str.toString();		
 	}
 
-	private String asString(float[] arr) {
+	private String asString(final float[] arr) {
 		StringBuilder str = new StringBuilder();
 		for(float f : arr) {
 			append(str,f);
@@ -273,7 +271,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return str.toString();		
 	}
 
-	private String asString(double[] arr) {
+	private String asString(final double[] arr) {
 		StringBuilder str = new StringBuilder();
 		for(double d : arr) {
 			append(str,d);
@@ -281,7 +279,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return str.toString();		
 	}
 	
-	private String asString(char[] arr) {
+	private String asString(final char[] arr) {
 		StringBuilder str = new StringBuilder();
 		for(char c : arr) {
 			append(str,c);
@@ -289,7 +287,7 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		return str.toString();		
 	}
 	
-	private void append(StringBuilder str, Object val) {
+	private void append(final StringBuilder str, final Object val) {
 		if(str.length()!=0) str.append(" ");
 		str.append(val);
 	}
