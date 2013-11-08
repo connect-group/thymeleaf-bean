@@ -11,7 +11,7 @@ The bean attribute also supports a Map<String,String> e.g.
 
     <a th:bean="${linkMap}">Hello!</a>
     
-## A Bean For example
+## A Bean example
 
     class MyBean {
         String getAlt();
