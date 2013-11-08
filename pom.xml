@@ -29,13 +29,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.connect-group</groupId>
-  <artifactId>thymeleaf-use</artifactId>
+  <artifactId>thymeleaf-bean</artifactId>
   <version>2.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>thymeleaf-use</name>
+  <name>thymeleaf-bean</name>
   <description>Any properties of an object are automatically added as attributes.</description>
-  <url>http://connect-group.github.io/thymeleaf-use/</url>
+  <url>http://connect-group.github.io/thymeleaf-bean/</url>
 
   <licenses>
     <license>
@@ -46,9 +46,9 @@
   </licenses>
   
   <scm>
-    <url>scm:git:git@github.com:connect-group/thymeleaf-use.git</url>
-    <connection>scm:git:git@github.com:connect-group/thymeleaf-use.git</connection>
-    <developerConnection>scm:git:git@github.com:connect-group/thymeleaf-use.git</developerConnection>
+    <url>scm:git:git@github.com:connect-group/thymeleaf-bean.git</url>
+    <connection>scm:git:git@github.com:connect-group/thymeleaf-bean.git</connection>
+    <developerConnection>scm:git:git@github.com:connect-group/thymeleaf-bean.git</developerConnection>
   </scm>
   
   <developers>

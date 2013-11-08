@@ -17,7 +17,7 @@
  *
  * =============================================================================
  */
-package com.connect_group.thymeleaf.use;
+package com.connect_group.thymeleaf.bean;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -26,7 +26,7 @@ import org.thymeleaf.dialect.AbstractDialect;
 import org.thymeleaf.processor.IProcessor;
 
 
-public class UseDialect extends AbstractDialect {
+public class BeanDialect extends AbstractDialect {
 
 	public String getPrefix() {
 		return "th";
@@ -40,7 +40,7 @@ public class UseDialect extends AbstractDialect {
 	@Override
     public Set<IProcessor> getProcessors() {
 		final Set<IProcessor> processors = new HashSet<IProcessor>();
-		processors.add(new UseProcessor());
+		processors.add(new BeanProcessor());
 		return processors;
 	}
 

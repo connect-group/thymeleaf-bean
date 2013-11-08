@@ -1,4 +1,4 @@
-package com.connect_group.thymeleaf.use;
+package com.connect_group.thymeleaf.bean;
 
 import java.beans.BeanInfo;
 import java.beans.IndexedPropertyDescriptor;
@@ -6,8 +6,11 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.thymeleaf.Arguments;
 import org.thymeleaf.dom.Element;
@@ -15,13 +18,46 @@ import org.thymeleaf.processor.attr.AbstractAttributeModifierAttrProcessor;
 import org.thymeleaf.standard.expression.IStandardExpression;
 import org.thymeleaf.standard.expression.IStandardExpressionParser;
 import org.thymeleaf.standard.expression.StandardExpressions;
+import org.thymeleaf.util.StringUtils;
 
 // TODO: support for text and utext.
+// TODO: support for Map<String,Object>
+// TODO: support for data- attributes e.g. Map getData(); getDataMobile() --> data-mobile
 
-public class UseProcessor extends AbstractAttributeModifierAttrProcessor {
+/**
+ * The bean processor will react to a th:bean attribute.
+ * 
+ * The attribute must evaluate to a Java Object.
+ * 
+ * Using the 'bean' guidelines, any "getters" of the bean will be treated as attributes.
+ * Alternatively if the Object is a Map, the map entries will be translated into attributes.
+ * 
+ * For example,
+ * 
+ *     class MyBean {
+ *         String getAlt();
+ *         String getHref();
+ *         boolean getDisabled();
+ *         List<String> getCssClass();
+ *     }
+ *     
+ * The above bean would generate an 'alt' and a 'href' tag respectively.
+ * 
+ * If a 'getter' returns a Boolean, then the attribute value will be set to equal the attribute name; e.g.
+ * 
+ *     disabled="disabled"
+ *     
+ * Because the method 'getClass' is part of the Object, a method named getCssClass is required to set the Class.
+ * 
+ * The return value of each getter will be converted to a string.  Collections will be converted to a single string with each value separated by a single space.
+ *
+ * @author adam
+ *
+ */
+public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 
-	public UseProcessor() {
-		super("use");
+	public BeanProcessor() {
+		super("bean");
 	}
 	
 	@Override
@@ -67,6 +103,9 @@ public class UseProcessor extends AbstractAttributeModifierAttrProcessor {
 	
 	protected Map<String,String> getProperties(Object obj) {
 		HashMap<String,String> map = new HashMap<String,String>();
+		
+		map.putAll(getMapProperties(obj));
+		
 		try {
 			BeanInfo info = Introspector.getBeanInfo(obj.getClass());
 			PropertyDescriptor[] pds = info.getPropertyDescriptors();
@@ -88,7 +127,7 @@ public class UseProcessor extends AbstractAttributeModifierAttrProcessor {
 							result = getResult(pd, obj);
 						}
 						
-						if(result!=null) {
+						if(!StringUtils.isEmpty(result)) {
 							map.put(name,result);
 						}
 					}
@@ -100,6 +139,30 @@ public class UseProcessor extends AbstractAttributeModifierAttrProcessor {
 		return map;
 	}
 	
+	private Map<String,String> getMapProperties(Object obj) {
+		if(obj instanceof Map<?,?>) {
+			return getMapProperties((Map<?,?>)obj);
+		}
+		return Collections.emptyMap();
+	}
+	
+	private Map<String,String> getMapProperties(Map<?,?> map) {
+		HashMap<String,String> result = new HashMap<String,String>();
+		
+		for(Entry<?,?> entry : map.entrySet()) {
+			if(entry.getKey() instanceof String) {
+				String name = (String) entry.getKey();
+				String value = asString(entry.getValue(),name,null);
+				
+				if(value!=null) {
+					result.put(name, value);
+				}
+			}
+		}
+		
+		return result;
+	}
+
 	private String getResult(PropertyDescriptor pd, Object obj) {
 		String name = pd.getName();
 		Method method = pd.getReadMethod();
@@ -146,87 +209,89 @@ public class UseProcessor extends AbstractAttributeModifierAttrProcessor {
 			return asString((char[])obj);
 		}
 		
+		if(obj instanceof Iterable) {
+			return asString((Iterable<?>)obj);
+		}
+		
 		return obj.toString();
 	}
 	
+	private String asString(Iterable<?> it) {
+		StringBuilder str = new StringBuilder();
+		
+		for(Object o : it) {
+			append(str, asString(o, "true", "false"));
+		}
+		return str.toString();
+	}
+
 	private String asString(Object[] arr) {
 		StringBuilder str = new StringBuilder();
-		boolean first = true;
 		for(Object o : arr) {
-			if(first) str.append(" ");
-			str.append(asString(o, "true", "false"));
+			append(str, asString(o, "true", "false"));
 		}
 		return str.toString();
 	}
 	
 	private String asString(byte[] arr) {
 		StringBuilder str = new StringBuilder();
-		boolean first = true;
 		for(byte b : arr) {
-			if(first) str.append(" ");
-			str.append(b);
+			append(str,b);
 		}
 		return str.toString();		
 	}
 
 	private String asString(short[] arr) {
 		StringBuilder str = new StringBuilder();
-		boolean first = true;
 		for(short s : arr) {
-			if(first) str.append(" ");
-			str.append(s);
+			append(str,s);
 		}
 		return str.toString();		
 	}
 	
 	private String asString(int[] arr) {
 		StringBuilder str = new StringBuilder();
-		boolean first = true;
 		for(int i : arr) {
-			if(first) str.append(" ");
-			str.append(i);
+			append(str, i);
 		}
 		return str.toString();		
 	}
 
 	private String asString(long[] arr) {
 		StringBuilder str = new StringBuilder();
-		boolean first = true;
 		for(long l : arr) {
-			if(first) str.append(" ");
-			str.append(l);
+			append(str,l);
 		}
 		return str.toString();		
 	}
 
 	private String asString(float[] arr) {
 		StringBuilder str = new StringBuilder();
-		boolean first = true;
 		for(float f : arr) {
-			if(first) str.append(" ");
-			str.append(f);
+			append(str,f);
 		}
 		return str.toString();		
 	}
 
 	private String asString(double[] arr) {
 		StringBuilder str = new StringBuilder();
-		boolean first = true;
 		for(double d : arr) {
-			if(first) str.append(" ");
-			str.append(d);
+			append(str,d);
 		}
 		return str.toString();		
 	}
 	
 	private String asString(char[] arr) {
 		StringBuilder str = new StringBuilder();
-		boolean first = true;
 		for(char c : arr) {
-			if(first) str.append(" ");
-			str.append(c);
+			append(str,c);
 		}
 		return str.toString();		
+	}
+	
+	private void append(StringBuilder str, Object val) {
+		if(str.length()!=0) str.append(" ");
+		str.append(val);
 	}
 
 }
