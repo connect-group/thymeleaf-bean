@@ -29,3 +29,7 @@ If a 'getter' returns a Boolean, then the attribute value will be set to equal t
 Because the method 'getClass' is part of the Object, a method named getCssClass is required to set the Class.
 
 The return value of each getter will be converted to a string.  Collections will be converted to a single string with each value separated by a single space.
+
+So a List<String> which contains ["abc","def"] would become "abc def".
+
+    class="abc def"
