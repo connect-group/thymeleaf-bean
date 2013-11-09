@@ -8,18 +8,22 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.thymeleaf.Arguments;
 import org.thymeleaf.dom.Element;
+import org.thymeleaf.dom.Macro;
+import org.thymeleaf.dom.Node;
+import org.thymeleaf.dom.Text;
+import org.thymeleaf.processor.ProcessorResult;
 import org.thymeleaf.processor.attr.AbstractAttributeModifierAttrProcessor;
 import org.thymeleaf.standard.expression.IStandardExpression;
 import org.thymeleaf.standard.expression.IStandardExpressionParser;
 import org.thymeleaf.standard.expression.StandardExpressions;
 import org.thymeleaf.util.StringUtils;
 
-// TODO: support for text and utext.
 // TODO: support for data- attributes e.g. Map getData(); getDataMobile() --> data-mobile
 
 /**
@@ -47,56 +51,60 @@ import org.thymeleaf.util.StringUtils;
  *     
  * Because the method 'getClass' is part of the Object, a method named getCssClass is required to set the Class.
  * 
- * The return value of each getter will be converted to a string.  Collections will be converted to a single string with each value separated by a single space.
- *
+ * The return value of each getter will be converted to a string.  
+ * Collections will be converted to a single string with each value separated by a single space.
+ * So a List<String> which contains ["abc","def"] would become "abc def".
+ * 
+ * Special Case: getText and getUText
+ * These methods will modify the content of an attribute in the same way as th:text and th:utext respectively.
+ * 
  * @author adam
  *
  */
-public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
+public class BeanProcessor extends BaseAttributeProcessor {
 
 	public BeanProcessor() {
 		super("bean");
 	}
 	
-	@Override
-	protected Map<String, String> getModifiedAttributeValues(
-			final Arguments arguments, final Element element, final String attributeName) {
 
-		String expression = element.getAttributeValue(attributeName);
-		Object object = parseExpression(arguments, expression);
+	@Override
+	protected ProcessorResult doProcess(Arguments arguments, AttributeData data) {
+		Map<String,String> modifiedAttributes = getProperties(data.evaluatedAttributeValue);
+		ProcessorResult result = updateAttributes(data.element, modifiedAttributes);
 		
-		return getProperties(object);
+		if(result.isOK()) {
+	    	List<Node> modifiedChildren = getModifiedChildren(modifiedAttributes);
+	    	
+	    	if(modifiedChildren!=null) {
+	    		data.element.clearChildren();
+	    		data.element.setChildren(modifiedChildren);
+	    	}
+
+		}
+		return result;
+	}
+	
+	private List<Node> getModifiedChildren(final Map<String, String> modifiedAttributes) {
+		if(modifiedAttributes.containsKey("text")) {
+			Node node = new Text(modifiedAttributes.get("text"));
+			node.setProcessable(false);
+			return Collections.singletonList(node);
+		}
+		
+		if(modifiedAttributes.containsKey("utext")) {
+			Node node = new Macro(modifiedAttributes.get("text"));
+			node.setProcessable(false);
+			return Collections.singletonList(node);
+		}
+		
+		return null;
 	}
 
-	@Override
-	protected ModificationType getModificationType(final Arguments arguments,
-			final Element element, final String attributeName, final String newAttributeName) {
-		return ModificationType.SUBSTITUTION;
-	}
-
-	@Override
-	protected boolean removeAttributeIfEmpty(final Arguments arguments,
-			final Element element, final String attributeName, final String newAttributeName) {
-		return true;
-	}
-
-	@Override
-	protected boolean recomputeProcessorsAfterExecution(final Arguments arguments,
-			final Element element, final String attributeName) {
-		return false;
-	}
 
 	@Override
 	public int getPrecedence() {
-		return 1500;
-	}
-	
-	private Object parseExpression(final Arguments arguments, final String expressionString) {
-        final IStandardExpressionParser expressionParser = StandardExpressions.getExpressionParser(arguments.getConfiguration());
-        final IStandardExpression expression = expressionParser.parseExpression(arguments.getConfiguration(), arguments, expressionString);
-        final Object value = expression.execute(arguments.getConfiguration(), arguments);
-
-        return value;
+		return 200;
 	}
 	
 	protected Map<String,String> getProperties(final Object obj) {
@@ -291,5 +299,12 @@ public class BeanProcessor extends AbstractAttributeModifierAttrProcessor {
 		if(str.length()!=0) str.append(" ");
 		str.append(val);
 	}
+
+
+	@Override
+	protected boolean isIgnoredAttribute(String modifiedAttributeName) {
+		return "text".equals(modifiedAttributeName) || "utext".equals(modifiedAttributeName);
+	}
+
 
 }
