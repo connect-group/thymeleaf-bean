@@ -5,6 +5,7 @@ import java.beans.IndexedPropertyDescriptor;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,15 +14,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
 import org.thymeleaf.dom.Macro;
 import org.thymeleaf.dom.Node;
 import org.thymeleaf.dom.Text;
 import org.thymeleaf.processor.ProcessorResult;
-import org.thymeleaf.processor.attr.AbstractAttributeModifierAttrProcessor;
-import org.thymeleaf.standard.expression.IStandardExpression;
-import org.thymeleaf.standard.expression.IStandardExpressionParser;
-import org.thymeleaf.standard.expression.StandardExpressions;
 import org.thymeleaf.util.StringUtils;
 
 // TODO: support for data- attributes e.g. Map getData(); getDataMobile() --> data-mobile
@@ -57,6 +53,21 @@ import org.thymeleaf.util.StringUtils;
  * 
  * Special Case: getText and getUText
  * These methods will modify the content of an attribute in the same way as th:text and th:utext respectively.
+ * 
+ * Special Case: getData()
+ * If a bean has a method called getData which returns a Map<String,?> then these will be converted into data- attributes.
+ * 
+ * E.g.
+ *   {  "mobile-url" : "http://example.com/example.jpg" }
+ * ... will become data-mobile-url="http://example.com/example.jpg"
+ * 
+ * Special Case: getDataXxxXxx()
+ * If a bean has a property whose name begins with "getData" then the method name indicates a data attribute.
+ * The "camel case" of the property name will be processed such that a hyphen is inserted before each capital letter.
+ * It will then convert to lowercase.
+ * 
+ *  E.g.
+ *     String getDataMobileUrl()  will become data-mobile-url
  * 
  * @author adam
  *
@@ -121,16 +132,17 @@ public class BeanProcessor extends BaseAttributeProcessor {
 					String name = pd.getName();
 					
 					if(!"class".equals(name)) {
-						
-						if("cssClass".equals(name)) {
-							name="class";
-						}
+						name = processName(name);
 						
 						String result = null;
 						if(pd instanceof IndexedPropertyDescriptor) {
 							// Ignore indexed methods.
 						} else {
-							result = getResult(pd, obj);
+							if("data".equals(name) && isInstanceofMap(pd.getReadMethod().getReturnType())) {
+								map.putAll(extractDataAttributes(pd, obj));
+							} else {
+								result = getResult(pd, obj);
+							}
 						}
 						
 						if(!StringUtils.isEmpty(result)) {
@@ -145,6 +157,65 @@ public class BeanProcessor extends BaseAttributeProcessor {
 		return map;
 	}
 	
+	private Map<? extends String, ? extends String> extractDataAttributes(PropertyDescriptor pd, Object obj) {
+
+		HashMap<String,String> result = new HashMap<String,String>();
+		
+		try {
+			Map<?,?> map = (Map<?,?>)pd.getReadMethod().invoke(obj);
+			for(Entry<?,?> entry : map.entrySet()) {
+				if(entry.getKey() instanceof String) {
+					String name="data-" + (String)entry.getKey();
+					String value=asString(entry.getValue(), "true", "false");
+					result.put(name, value);
+				}
+			}
+		} catch (Exception e) {
+		
+		}
+		return result;
+	}
+
+
+	private boolean isInstanceofMap(Class<?> type) {
+		return Map.class.isAssignableFrom(type);
+	}
+
+
+	static String processName(final String name) {
+		String newName = name;
+		
+		if("cssClass".equals(name)) {
+			newName="class";
+		} else if(isDataAttribute(name)){
+			newName = uncamel(name);
+		}
+		return newName;
+	}
+
+	static String uncamel(String name) {
+		StringBuilder uncamel = new StringBuilder();
+		
+		for(int i=0; i<name.length(); i++) {
+			char c = name.charAt(i);
+			if(isUppercase(c)) {
+				uncamel.append("-");
+			}
+			uncamel.append(c);
+		}
+		
+		return uncamel.toString().toLowerCase();
+	}
+
+
+	static boolean isDataAttribute(String name) {
+		return (name.length()>4 && name.startsWith("data") && isUppercase(name.charAt(4)));
+	}
+	
+	static boolean isUppercase(char c) {
+		return (c>='A' && c<='Z');
+	}
+
 	private Map<String,String> getMapProperties(final Object obj) {
 		if(obj instanceof Map<?,?>) {
 			return getMapProperties((Map<?,?>)obj);

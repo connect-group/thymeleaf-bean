@@ -11,8 +11,9 @@ import org.junit.Test;
 
 import com.connect_group.thymeleaf.bean.BeanProcessor;
 
+@SuppressWarnings("unused")
 public class BeanTests {
-	BeanProcessor use = new BeanProcessor();
+	BeanProcessor processor = new BeanProcessor();
 	
 	@Test
 	public void testBeanWithStrings() {
@@ -22,7 +23,7 @@ public class BeanTests {
 			public String getAlt() { return "some alternative"; }
 		};
 		
-		Map<String,String> map = use.getProperties(bean);
+		Map<String,String> map = processor.getProperties(bean);
 		
 		assertEquals(2, map.size());
 		assertEquals("thetitle", map.get("title"));
@@ -37,7 +38,7 @@ public class BeanTests {
 			public boolean isFalseSoWontReturnAProperty() { return false; }
 		};
 		
-		Map<String,String> map = use.getProperties(bean);
+		Map<String,String> map = processor.getProperties(bean);
 		
 		assertEquals(2, map.size());
 		assertEquals("elephant", map.get("elephant"));
@@ -51,7 +52,7 @@ public class BeanTests {
 			public String banana() { return "also not a bean getter"; }
 		};
 		
-		Map<String,String> map = use.getProperties(bean);
+		Map<String,String> map = processor.getProperties(bean);
 		
 		assertEquals(0, map.size());
 	}
@@ -63,7 +64,7 @@ public class BeanTests {
 			public List<String> getList() { return Arrays.asList(new String[] {}); }
 		};
 		
-		Map<String,String> map = use.getProperties(bean);
+		Map<String,String> map = processor.getProperties(bean);
 		
 		assertEquals(0, map.size());
 	}
@@ -75,7 +76,7 @@ public class BeanTests {
 			public List<String> getList() { return Arrays.asList(new String[] {"a","b","c"}); }
 		};
 		
-		Map<String,String> map = use.getProperties(bean);
+		Map<String,String> map = processor.getProperties(bean);
 		
 		assertEquals(1, map.size());
 		assertEquals("a b c", map.get("list"));
@@ -87,7 +88,7 @@ public class BeanTests {
 			public char[] getChars() { return new char[] {'a','b','c'}; }
 		};
 		
-		Map<String,String> map = use.getProperties(bean);
+		Map<String,String> map = processor.getProperties(bean);
 		
 		assertEquals(1, map.size());
 		assertEquals("a b c", map.get("chars"));
@@ -99,7 +100,7 @@ public class BeanTests {
 			public double[] getDoubles() { return new double[] {1.0D,2.7D}; }
 		};
 		
-		Map<String,String> map = use.getProperties(bean);
+		Map<String,String> map = processor.getProperties(bean);
 		
 		assertEquals(1, map.size());
 		assertEquals("1.0 2.7", map.get("doubles"));
@@ -112,7 +113,7 @@ public class BeanTests {
 			public double[][] getDoubles() { return new double[][] { new double[] {1.0D,2.7D}, new double[] {3.99D, 77.8D}}; }
 		};
 		
-		Map<String,String> map = use.getProperties(bean);
+		Map<String,String> map = processor.getProperties(bean);
 		
 		assertEquals(1, map.size());
 		assertEquals("1.0 2.7 3.99 77.8", map.get("doubles"));
@@ -128,7 +129,7 @@ public class BeanTests {
 			}
 		};
 		
-		Map<String,String> map = use.getProperties(bean);
+		Map<String,String> map = processor.getProperties(bean);
 		
 		assertEquals(1, map.size());
 		assertEquals("{X=Y}", map.get("map"));
@@ -136,9 +137,51 @@ public class BeanTests {
 	}
 	
 	@Test
+	public void testBeanWithDataMap() {
+		Object bean = new Object() {
+			public Map<String,String> getData() {
+				HashMap<String,String> map = new HashMap<String,String>();
+				map.put("A","B");
+				map.put("bananaRama","X");
+				map.put("banana-rama","Y");
+				return map;
+			}
+		};
+		
+		Map<String,String> map = processor.getProperties(bean);
+		
+		assertEquals(3, map.size());
+		assertEquals("B", map.get("data-A"));
+		assertEquals("X", map.get("data-bananaRama"));
+		assertEquals("Y", map.get("data-banana-rama"));
+	}
+	
+	@Test
+	public void testBeanWithDataProperties() {
+		Object bean = new Object() {
+
+			public String getDataMobileUrl() {
+				return "the url";
+			}
+			
+			
+			public String getDataTabletUrl() {
+				return "tablet url";
+			}
+		};
+		
+		Map<String,String> map = processor.getProperties(bean);
+		
+		assertEquals(2, map.size());
+		assertEquals("the url", map.get("data-mobile-url"));
+		assertEquals("tablet url", map.get("data-tablet-url"));
+
+	}
+	
+	@Test
 	public void testNonBean() {
 		Object bean = new Object();
-		Map<String,String> map = use.getProperties(bean);
+		Map<String,String> map = processor.getProperties(bean);
 		assertEquals(0, map.size());
 	}
 	
@@ -148,11 +191,49 @@ public class BeanTests {
 		bean.put("left","right");
 		bean.put("up", "down");
 		
-		Map<String,String> map = use.getProperties(bean);
+		Map<String,String> map = processor.getProperties(bean);
 		assertEquals(2, map.size());
 		assertEquals("right", map.get("left"));
 		assertEquals("down", map.get("up"));
 		
+	}
+	
+	@Test
+	public void testUncamel() {
+		assertEquals("data-mobile-url", BeanProcessor.uncamel("dataMobileUrl"));
+		assertEquals("data-mobile3-url", BeanProcessor.uncamel("dataMobile3Url"));
+		assertEquals("data-x-x-x", BeanProcessor.uncamel("dataXXX"));
+	}
+	
+	@Test
+	public void testIsUppercase() {
+		String upper="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		String lower="abcdefghijklmnopqrdtuvwxyz";
+		String digit="0123456789";
+		String chars="./-_";
+		
+		for(int i=0; i<upper.length(); i++) {
+			assertTrue(BeanProcessor.isUppercase(upper.charAt(i)));
+		}
+		
+		for(int i=0; i<lower.length(); i++) {
+			assertFalse(BeanProcessor.isUppercase(lower.charAt(i)));
+		}
+		
+		for(int i=0; i<digit.length(); i++) {
+			assertFalse(BeanProcessor.isUppercase(digit.charAt(i)));
+		}
+		
+		for(int i=0; i<chars.length(); i++) {
+			assertFalse(BeanProcessor.isUppercase(chars.charAt(i)));
+		}
+	}
+	
+	@Test
+	public void testIsDataAttributeName() {
+		assertTrue(BeanProcessor.isDataAttribute("dataBanana"));
+		assertFalse(BeanProcessor.isDataAttribute("database"));
+		assertFalse(BeanProcessor.isDataAttribute("base"));
 	}
 	
 }
