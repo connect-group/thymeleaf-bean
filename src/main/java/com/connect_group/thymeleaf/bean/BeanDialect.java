@@ -33,7 +33,7 @@ public class BeanDialect extends AbstractDialect {
 	}
 	
 	public String getPrefix() {
-		return "th";
+		return "bean";
 	}
 	
 	@Override

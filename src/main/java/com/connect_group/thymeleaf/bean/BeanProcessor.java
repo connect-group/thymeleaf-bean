@@ -5,7 +5,6 @@ import java.beans.IndexedPropertyDescriptor;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,8 +18,6 @@ import org.thymeleaf.dom.Node;
 import org.thymeleaf.dom.Text;
 import org.thymeleaf.processor.ProcessorResult;
 import org.thymeleaf.util.StringUtils;
-
-// TODO: support for data- attributes e.g. Map getData(); getDataMobile() --> data-mobile
 
 /**
  * The bean processor will react to a th:bean attribute.
@@ -75,7 +72,7 @@ import org.thymeleaf.util.StringUtils;
 public class BeanProcessor extends BaseAttributeProcessor {
 
 	public BeanProcessor() {
-		super("bean");
+		super("use");
 	}
 	
 
@@ -104,7 +101,7 @@ public class BeanProcessor extends BaseAttributeProcessor {
 		}
 		
 		if(modifiedAttributes.containsKey("utext")) {
-			Node node = new Macro(modifiedAttributes.get("text"));
+			Node node = new Macro(modifiedAttributes.get("utext"));
 			node.setProcessable(false);
 			return Collections.singletonList(node);
 		}
