@@ -10,7 +10,7 @@ Include the latest release from Maven,
 
 		<dependency>
 			<groupId>com.connect-group</groupId>
-			<artifactId>thymesheet-spring3</artifactId>
+			<artifactId>thymeleaf-bean</artifactId>
 			<version>2.1.0</version>
 		</dependency>
 
