@@ -3,6 +3,19 @@ thymeleaf-bean
 
 Thymeleaf dialect which converts object properties to tag attributes.
 
+
+## Maven
+
+Include the latest release from Maven,
+
+		<dependency>
+			<groupId>com.connect-group</groupId>
+			<artifactId>thymesheet-spring3</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+
+## Getting Started
+
     <a bean:use="${linkBean}">Hello!</a>
     
 Attributes such as href, title, class etc will be set according to the properties of the object, "linkBean".
