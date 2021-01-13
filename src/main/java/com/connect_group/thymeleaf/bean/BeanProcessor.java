@@ -28,14 +28,14 @@ import org.thymeleaf.util.StringUtils;
  * Alternatively if the Object is a Map, the map entries will be translated into attributes.
  * 
  * For example,
- * 
+ *  
  *     class MyBean {
  *         String getAlt();
  *         String getHref();
  *         boolean getDisabled();
- *         List<String> getCssClass();
+ *         List&lt;String&gt; getCssClass();
  *     }
- *     
+ * 
  * The above bean would generate an 'alt' and a 'href' tag respectively.
  * 
  * If a 'getter' returns a Boolean, then the attribute value will be set to equal the attribute name; e.g.
@@ -46,13 +46,13 @@ import org.thymeleaf.util.StringUtils;
  * 
  * The return value of each getter will be converted to a string.  
  * Collections will be converted to a single string with each value separated by a single space.
- * So a List<String> which contains ["abc","def"] would become "abc def".
+ * So a List&lt;String&gt; which contains ["abc","def"] would become "abc def".
  * 
  * Special Case: getText and getUText
  * These methods will modify the content of an attribute in the same way as th:text and th:utext respectively.
  * 
  * Special Case: getData()
- * If a bean has a method called getData which returns a Map<String,?> then these will be converted into data- attributes.
+ * If a bean has a method called getData which returns a Map&lt;String,?&lt; then these will be converted into data- attributes.
  * 
  * E.g.
  *   {  "mobile-url" : "http://example.com/example.jpg" }

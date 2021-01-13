@@ -30,7 +30,7 @@
 
     <groupId>com.connect-group</groupId>
     <artifactId>thymeleaf-bean</artifactId>
-    <version>2.1.0</version>
+    <version>2.1.1</version>
     <packaging>jar</packaging>
 
     <name>thymeleaf-bean</name>
@@ -70,8 +70,8 @@
             <url>http://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
         <repository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
+            <id>sonatype-nexus-releases</id>
+            <name>Sonatype Nexus Releases</name>
             <url>http://oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
     </distributionManagement>
